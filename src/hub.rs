@@ -114,6 +114,9 @@ impl Hub {
                 world_data.status = status
             } else if let ParsingValue::List(players) = parse_line(line, "\tplayers") {
                 world_data.players = players
+                    .into_iter()
+                    .map(|value| value.to_lowercase())
+                    .collect();
             }
         }
 
