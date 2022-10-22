@@ -1,3 +1,6 @@
+use chrono::{DateTime, FixedOffset, NaiveDate};
+use lazy_static::lazy_static;
+use regex::Regex;
 use reqwest::blocking::ClientBuilder;
 use serde::{Deserialize, Serialize};
 
@@ -133,5 +136,22 @@ impl Hub {
         let body = response.text().unwrap();
 
         Self::parse_response(&body)
+    }
+
+    pub fn reg_date(key: &str) -> NaiveDate {
+        lazy_static! {
+            static ref REG_REGEX: Regex = Regex::new("(?m)joined = \"(?P<date>.+)\"").unwrap();
+        }
+
+        let client = ClientBuilder::new().build().unwrap();
+        let response = client
+            .get(format!("http://www.byond.com/members/{key}?format=text"))
+            .send()
+            .unwrap();
+
+        let body = response.text().unwrap();
+        let date = REG_REGEX.captures(&body).unwrap().get(1).unwrap().as_str();
+
+        NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap()
     }
 }
