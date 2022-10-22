@@ -25,7 +25,7 @@ fn normalize_server_name(name: &str) -> String {
         "Fulpstation"
     } else if name.starts_with("SS13.SU] <b>Ð‘eÐ»aÑ ÐœeÑ‡Ñ‚a:</b>") {
         "White"
-    } else if name.starts_with("<b>/tg/Station Basil") {
+    } else if name.starts_with("<b>/tg/Station") {
         "/TG/"
     } else if name.starts_with("<b>Aurorastation") {
         "Aurorastation"
@@ -43,6 +43,22 @@ fn normalize_server_name(name: &str) -> String {
         "<b><a href='https://discord.gg/8FZgaS77bH' rel=\\\"nofollow\\\">Dead Space 13",
     ) {
         "Dead Space 13"
+    } else if name.starts_with("<b>\\[RU] BOS") {
+        "BOS"
+    } else if name.starts_with("<b>\\[RU] SS220 tgstation") {
+        "SS220 /TG/station"
+    } else if name
+        .starts_with("<b><a href=\\\"https://goonhub.com\\\" rel=\\\"nofollow\\\">Goonstation")
+    {
+        "Goonstation"
+    } else if name.starts_with("<b>CEV Eris \\[EN]") {
+        "Eris EN"
+    } else if name.starts_with("<b>Foundation-19</b>") {
+        "Foundation-19"
+    } else if name.starts_with("<b>Core Station</b>") {
+        "Core Station"
+    } else if name.starts_with("<b>ARMOSTATION</b>") {
+        "ARMOSTATION"
     } else {
         name
     };
@@ -62,17 +78,29 @@ fn main() {
 
         writer.write_field(&pinfo.key).unwrap();
 
+        let reg_date = Hub::reg_date(&pinfo.key);
+
+        writer
+            .write_field(reg_date.format("%Y-%m-%d").to_string())
+            .unwrap();
+
         let servers: HashSet<String> = pinfo
             .visits
             .iter()
             .map(|server| normalize_server_name(&server.name))
             .collect();
 
-        let reg_date = Hub::reg_date(&pinfo.key);
+        let mut servers_text = String::new();
 
-        writer
-            .write_field(reg_date.format("%Y-%m-%d").to_string())
-            .unwrap();
-        writer.write_record(servers).unwrap();
+        for (idx, server) in servers.iter().enumerate() {
+            servers_text += server;
+
+            if idx != servers.len() - 1 {
+                servers_text += ";";
+            }
+        }
+
+        writer.write_field(servers_text).unwrap();
+        writer.write_record(None::<&[u8]>).unwrap();
     }
 }
