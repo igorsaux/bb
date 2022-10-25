@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, fs};
 
 use bb::{database::DataBase, hub::Hub};
 
@@ -52,21 +52,67 @@ fn normalize_server_name(name: &str) -> String {
     {
         "Goonstation"
     } else if name.starts_with("<b>CEV Eris \\[EN]") {
-        "Eris EN"
+        "Eris"
     } else if name.starts_with("<b>Foundation-19</b>") {
         "Foundation-19"
     } else if name.starts_with("<b>Core Station</b>") {
         "Core Station"
     } else if name.starts_with("<b>ARMOSTATION</b>") {
         "ARMOSTATION"
-    } else {
+    } else if name.starts_with("<b>Paradise Station</b>]") {
+        "Paradise"
+    } else if name.starts_with("<b>Lobotomy Corporation 13</b>]") {
+        "Lobotomy Corporation 13"
+    } else if name.starts_with("SS13.SU]<b>\\[RU]Shiptest</b>") {
+        "Shiptest RU"
+    } else if name.starts_with("<b>Ruwebâ€&nbsp;:") {
+        "Ruweb"
+    } else if name.starts_with("<b>CEV Eris \\[RU] RP server") {
+        "Eris RU"
+    } else if name.starts_with("<b>SHIPTEST") {
+        "Shiptest"
+    } else if name.starts_with(
+        "<b><a href='https://discord.gg/2dFpfNE' rel=\\\"nofollow\\\">TerraGov Marine Corps",
+    ) {
+        "TerraGov"
+    } else if name.starts_with("<br>\\n<b>Yogstation 13</b>") {
+        "Yogstation 13"
+    } else if name.starts_with("<b>Maconha Station 13") {
+        "Maconha Station 13"
+    } else if name.starts_with("<b>\\[RU] ghostStation</b>") {
+        "ghostStation RU"
+    } else if name.starts_with("SS13.SU]\\n<center><a href=\\\"https://discord.gg/HQjz7YKRAJ\\\" target=\\\"_blank\\\" rel=\\\"nofollow\\\"><b>Ru Civilization 13") {
+		"Civilization 13 RU"
+	} else if name.starts_with("<b>BeeStation") {
+		"BeeStation"
+	} else if name.starts_with("<b>Furbee Station") {
+		"Furbee Station"
+	} else if name.starts_with("<b>SinguloStation13</b>") {
+		"SinguloStation13"
+	} else if name.starts_with("<b>\\[RU]Coffeé colony") {
+		"Coffeé colony RU"
+	} else if name.starts_with("<b>Citadel Station 13") {
+		"Citadel Station 13"
+	} else if name.starts_with("<b>AetherStation</b>") {
+		"AetherStation"
+	} else if name.starts_with("<b>Monkestation</b>") || name.starts_with("<b>Metatest Station - Unrobust Chill Barfigth</b> &#8212; <b>Monkey Station") {
+		"Monkestation"
+	} else if name.starts_with("<b>40K-Eipharius - Warhammer 40k") {
+		"40K-Eipharius - Warhammer 40k"
+	} else if name.starts_with("<b>Mojave Sun") {
+		"Mojave Sun"
+	} else if name.starts_with("<b>The Sunset Wasteland</b>") {
+		"The Sunset Wasteland"
+	} else if name.starts_with("<b>BungalowStation</b>") {
+		"BungalowStation"
+	} else {
         name
     };
 
     normalized.to_string()
 }
 
-fn main() {
+fn csv_export() {
     let db = DataBase::load().unwrap();
 
     let mut writer = csv::Writer::from_path("export.csv").unwrap();
@@ -103,4 +149,24 @@ fn main() {
         writer.write_field(servers_text).unwrap();
         writer.write_record(None::<&[u8]>).unwrap();
     }
+}
+
+fn json_export() {
+    let db = DataBase::load().unwrap();
+
+    let mut info = db.players_info;
+
+    info.iter_mut().for_each(|pinfo| {
+        pinfo
+            .visits
+            .iter_mut()
+            .for_each(|visit| visit.name = normalize_server_name(&visit.name))
+    });
+
+    let content = serde_json::to_string_pretty(&info).unwrap();
+    fs::write("export.json", &content).unwrap();
+}
+
+fn main() {
+    json_export();
 }
